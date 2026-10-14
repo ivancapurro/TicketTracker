@@ -6,7 +6,6 @@ namespace TicketTracker.Api.Controllers;
 
 [ApiController]
 [Route("api/projects/{projectId:int}/tickets")]
-[Produces("application/json")]
 public sealed class TicketsController(ITicketService tickets) : ControllerBase
 {
     [HttpGet]

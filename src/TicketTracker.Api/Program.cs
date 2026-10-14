@@ -1,5 +1,7 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
@@ -27,6 +29,8 @@ builder.Services.AddControllers()
                 detail: "The request is invalid. See the errors for details.",
                 instance: context.HttpContext.Request.Path);
 
+            CamelCaseErrorKeys(problem);
+
             return new BadRequestObjectResult(problem)
             {
                 ContentTypes = { "application/problem+json" },
@@ -44,6 +48,14 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Baseline Jira-style ticket tracker for coding-agent benchmarks.",
     });
     options.SupportNonNullableReferenceTypes();
+});
+
+builder.Services.PostConfigure<MvcOptions>(options =>
+{
+    // application/*+json already matches problem+json. Listing it explicitly keeps
+    // validation responses on application/problem+json when a result sets that type.
+    var jsonOutput = options.OutputFormatters.OfType<SystemTextJsonOutputFormatter>().FirstOrDefault();
+    jsonOutput?.SupportedMediaTypes.Add("application/problem+json");
 });
 
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
@@ -113,5 +125,18 @@ await using (var scope = app.Services.CreateAsyncScope())
 
 app.Logger.LogInformation("Ticket Tracker API ready");
 app.Run();
+
+static void CamelCaseErrorKeys(ValidationProblemDetails problem)
+{
+    var policy = JsonNamingPolicy.CamelCase;
+    var renamed = problem.Errors
+        .Select(entry => (Key: policy.ConvertName(entry.Key), entry.Value))
+        .ToArray();
+    problem.Errors.Clear();
+    foreach (var (key, value) in renamed)
+    {
+        problem.Errors[key] = value;
+    }
+}
 
 public partial class Program;

@@ -23,11 +23,11 @@ public class SwaggerAndUserTests(TicketTrackerApiFactory factory)
         var ui = await client.GetAsync("/swagger/index.html");
         var html = await ui.Content.ReadAsStringAsync();
         Assert.Equal(HttpStatusCode.OK, ui.StatusCode);
-        Assert.Contains("Swagger UI", html, StringComparison.Ordinal);
+        Assert.Contains("swagger-ui", html, StringComparison.OrdinalIgnoreCase);
 
         var root = await client.GetAsync("/");
         Assert.Equal(HttpStatusCode.OK, root.StatusCode);
-        Assert.Contains("Swagger UI", await root.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Contains("swagger-ui", await root.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -134,8 +134,7 @@ public class ProjectEndpointTests(TicketTrackerApiFactory factory)
         Assert.Equal(400, problem.Status);
         Assert.Equal("One or more validation errors occurred.", problem.Title);
         Assert.NotNull(problem.Errors);
-        Assert.Contains(problem.Errors!.Keys, key => key.Equals("key", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(problem.Errors.Keys, key => key.Equals("name", StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(["key", "name"], problem.Errors!.Keys.OrderBy(key => key, StringComparer.Ordinal).ToArray());
         Assert.False(string.IsNullOrWhiteSpace(problem.TraceId));
     }
 

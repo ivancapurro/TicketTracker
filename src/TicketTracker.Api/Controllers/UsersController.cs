@@ -6,7 +6,6 @@ namespace TicketTracker.Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
-[Produces("application/json")]
 public sealed class UsersController(IUserService users) : ControllerBase
 {
     [HttpGet]

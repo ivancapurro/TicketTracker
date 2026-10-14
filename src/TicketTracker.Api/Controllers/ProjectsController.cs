@@ -6,7 +6,6 @@ namespace TicketTracker.Api.Controllers;
 
 [ApiController]
 [Route("api/projects")]
-[Produces("application/json")]
 public sealed class ProjectsController(IProjectService projects) : ControllerBase
 {
     [HttpGet]
